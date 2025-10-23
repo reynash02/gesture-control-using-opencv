@@ -8,7 +8,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclpy REQUIRED)
-
+find_package(turtlebot3_gazebo REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -21,5 +21,14 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+install (DIRECTORY launch src
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install (PROGRAMS
+  src/volume_control_node.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()
