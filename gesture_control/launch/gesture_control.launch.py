@@ -27,8 +27,16 @@ def generate_launch_description():
         output='screen'
     )
 
+    speed_control_node = Node(
+        package='gesture_control',
+        executable='speed_control.py',
+        name='speed_control',
+        output='screen'
+    )
+
     return LaunchDescription([
         set_turtlebot3_model,
         turtlebot3_world_launch,
-        gesture_control_node
+        gesture_control_node,
+        speed_control_node
     ])

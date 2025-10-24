@@ -2,6 +2,7 @@
 
 import rclpy
 from rclpy.node import Node
+from std_msgs.msg import Int32
 import cv2
 import numpy as np
 import math
@@ -12,12 +13,16 @@ class VolumeControlNode(Node):
     def __init__(self):
         super().__init__('volume_control_node')
         self.wcam, self.hcam = 640, 480
-        self.cap = cv2.VideoCapture(2)
+        self.cap = cv2.VideoCapture(0)
         self.cap.set(3, self.wcam)
         self.cap.set(4, self.hcam)
         self.detector = mp_solutions.hands.Hands()
         self.minVol = 0
         self.maxVol = 100  # Volume percentage for pactl
+
+        # Create publisher for volume percentage as Int32
+        self.volume_publisher = self.create_publisher(Int32, 'volume_percentage', 10)
+
         self.get_logger().info('Volume control node initialized')
         
     def set_volume(self, vol_percent):
@@ -25,6 +30,12 @@ class VolumeControlNode(Node):
         volume_cmd = f"pactl set-sink-volume @DEFAULT_SINK@ {int(vol_percent)}%"
         subprocess.run(volume_cmd, shell=True)
     
+    def publish_volume(self, vol_percent):
+        """Publish volume percentage to ROS2 topic as Int32"""
+        msg = Int32()
+        msg.data = int(vol_percent)
+        self.volume_publisher.publish(msg)
+        
     def run(self):
         while True:
             success, img = self.cap.read()
@@ -40,7 +51,7 @@ class VolumeControlNode(Node):
                     index_finger = hand_landmarks.landmark[mp_solutions.hands.HandLandmark.INDEX_FINGER_TIP]
                     thumb = hand_landmarks.landmark[mp_solutions.hands.HandLandmark.THUMB_TIP]
 
-                    # Calculate the distance between thumb and index finger
+                    # Calculate distance between thumb and index finger
                     length = math.hypot(index_finger.x - thumb.x, index_finger.y - thumb.y)
 
                     # Map the length to the volume range
@@ -50,6 +61,9 @@ class VolumeControlNode(Node):
 
                     # Set volume using pactl
                     self.set_volume(volPer)
+                    
+                    # Publish volume percentage as Int32
+                    self.publish_volume(volPer)
 
                     # Draw on the image
                     cv2.rectangle(img, (50, 150), (85, 400), (0, 255, 0), 3)

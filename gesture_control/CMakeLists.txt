@@ -28,6 +28,7 @@ install (DIRECTORY launch src
 
 install (PROGRAMS
   src/volume_control_node.py
+  src/speed_control.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
